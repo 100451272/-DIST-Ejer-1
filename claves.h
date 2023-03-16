@@ -1,7 +1,4 @@
-//
-// Created by manu on 15/03/23.
-//
-
+// Archivo de cabecera para claves.c
 #ifndef DIST_EJER_1_CLAVES_H
 #define DIST_EJER_1_CLAVES_H
 struct tupla {
@@ -41,7 +38,13 @@ int selectTupla(int clave, struct tupla *tupla);
 
 int saveTupla(struct tupla *tupla);
 
-int set_value(int key, char *value1, int value2, double value3)
+int set_value(int key, char *value1, int value2, double value3);
 
+int get_value(int key, char *value1, int *value2, double *value3);
 
+int modify_value(int key, char *value1, int value2, double value3);
+
+int delete_key(int key);
+
+int copy_key(int key1, int key2);
 #endif //DIST_EJER_1_CLAVES_H

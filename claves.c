@@ -121,7 +121,7 @@ int get_value(int key, char *value1, int *value2, double *value3){
     struct tupla tupla;
     int res = selectTupla(key, &tupla);
     value1 = tupla.valor1;
-    value2 = tupla.valor2; //Error con punteros
+    value2 = tupla.valor2;
 
     return res;
 }
