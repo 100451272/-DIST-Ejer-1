@@ -1,6 +1,6 @@
 // Archivo de cabecera para claves.c
-#ifndef DIST_EJER_1_CLAVES_H
-#define DIST_EJER_1_CLAVES_H
+#ifndef P_CLAVES_H
+#define P_CLAVES_H
 struct tupla {
     int clave;
     char* valor1;
@@ -24,6 +24,10 @@ struct node{
 
 };
 
+int create_key(int key, char *value);
+
+int delete_key(int key);
+
 void append(struct tupla *tupla);
 
 int isEmpty(void);
@@ -40,11 +44,11 @@ int saveTupla(struct tupla *tupla);
 
 int set_value(int key, char *value1, int value2, double value3);
 
-int get_value(int key, char *value1, int *value2, double *value3);
+int get_value(int key, char **value1, int *value2, double *value3);
 
 int modify_value(int key, char *value1, int value2, double value3);
 
 int delete_key(int key);
 
 int copy_key(int key1, int key2);
-#endif //DIST_EJER_1_CLAVES_H
+#endif //P_CLAVES_H
