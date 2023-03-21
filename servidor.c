@@ -8,16 +8,11 @@
 
 // declare a global mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+mqd_t queue;
 
-void petition_handler(mqd_t queue){
-    struct peticion pet;
+void petition_handler(struct peticion pet){
     int res;
-
-    if (mq_receive(queue, (char *)&pet, sizeof(pet), 0) == -1){
-        printf("Error en el recieve");
-        return;
-    }
-
+    printf("%d", pet.op);
     switch (pet.op) {
         case 0: //INIT
             if (!isEmpty()){
@@ -65,27 +60,38 @@ void petition_handler(mqd_t queue){
         default:
             res = -1; // Error: unknown operation
     }
-/*
-    if(mq_send(queue, (char *)&res, sizeof(int), 0) == -1) {
+
+    mqd_t cola_cliente;
+    cola_cliente = mq_open("/CLIENTE", O_WRONLY);
+    if(mq_send(cola_cliente, (char *)&res, sizeof(int), 0) == -1) {
         printf("Error en el send");
-    }*/
+    }
 }
 
 
 
 int main(void){
-    mqd_t queue;
-    queue = mq_open("/ALMACEN", O_CREAT | O_RDONLY);
-
-    if (queue == -1){
-        printf("Error");
-        return -1;
-    }
+    struct peticion pet;     
+	//pthread_attr_t t_attr;		 atributos de los threads 
+   	//pthread_t thid;
 
 
+    queue = mq_open("/ALMACEN", O_CREAT|O_RDONLY, 0700);
+	if (queue == -1) {
+		perror("mq_open");
+		return -1;
+	}
+
+    
     printf("Cola creada\n");
+
     while (1){
-    petition_handler(queue);
+        if (mq_receive(queue, (char *)&pet, sizeof(pet), 0) == -1){
+        printf("Error en el recieve");
+        return -1;
+        }
+        printf("Recibido");
+        petition_handler(pet);
     }    
     mq_close(queue);
     // Remove the message queue from the system

@@ -5,7 +5,7 @@
 #include "claves.h"
 
 int main(int argc, char **argv) {
-    if (argc < 3){
+    if (argc < 2){
         perror("Faltan argumentos. Uso: ./cliente [comando] [argumentos]");
         return -1;
     }

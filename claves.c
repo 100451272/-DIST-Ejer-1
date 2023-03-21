@@ -7,25 +7,37 @@
 
 int init(void){
     mqd_t cola;
-    cola = mq_open("/ALMACEN", O_RDWR);
+    cola = mq_open("/ALMACEN", O_WRONLY);
     if (cola == -1){
         perror("mq_open");
         return -1;
     }
     struct peticion pet;
     pet.op = 0;
-    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+    pet.tupla.clave = 0;
+    pet.tupla.valor1 = NULL;
+    pet.tupla.valor2 = 0;
+    pet.tupla.valor3 = 0;
+    printf("init\n");
+    if (mq_send(cola, (const char*)&pet, sizeof(pet), 0) < 0){
         perror("mq_send");
         mq_close(cola);
         return -1;
     }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+    mq_close(cola);
+    int res = 1;
+    /*mqd_t cola_cliente;
+    cola_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700);
+    if (cola_cliente == -1){
+        printf("Error cola del cliente\n");
+        return -1;
+    }
+    if (mq_receive(cola_cliente, (char*)&res, sizeof(int), 0) == -1){
         perror("mq_recieve");
         mq_close(cola);
         return -1;
     }
-    mq_close(cola);
+    mq_close(cola_cliente);*/
     return res;
 }
 
