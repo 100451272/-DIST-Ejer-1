@@ -3,172 +3,208 @@
 #include <stdlib.h>
 #include "claves.h"
 #include <string.h>
+#include <mqueue.h>
 
-struct node *head = NULL;
-struct node *tail = NULL;
-
-void init(void) {
-    head = NULL;
-    tail = NULL;
-}
-
-void append(struct tupla *tupla) {
-    struct node *node = (struct node*) malloc(sizeof(struct node));
-
-    node->tupla = tupla;
-    node->prev = NULL;
-    node->next = NULL;
-
-    if (head == NULL) {
-        head = node;
-        tail = node;
-    } else {
-        node->next = head;
-        head->prev = node;
-        head = node;
-    }
-}
-
-int isEmpty(void) {
-    if (head == NULL){
-        return 1;
-    }
-    return 0;
-}
-
-int deleteKey(int clave) {
-    if (isEmpty()) {
+int init(void){
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
         return -1;
     }
-    struct node *current = head;
-    while (current != NULL) {
-        if (current->tupla->clave == clave) {
-            if (current == head) {
-                head = current->next;
-            }
-            if (current == tail) {
-                tail = current->prev;
-            }
-            if (current->prev != NULL) {
-                current->prev->next = current->next;
-            }
-            if (current->next != NULL) {
-                current->next->prev = current->prev;
-            }
-            free(current->tupla);
-            free(current);
-            return 0;
-        }
-        current = current->next;
+    struct peticion pet;
+    pet.op = 0;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
+        return -1;
     }
-    return -1;
-}
-int deleteAll(void) {
-    if (isEmpty()) {
-        return 0;
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
+        return -1;
     }
-    struct node *current = head;
-    while (current != NULL) {
-        struct node *next = current->next;
-        free(current);
-        current = next;
-    }
-    head = NULL;
-    tail = NULL;
-    return 0;
+    mq_close(cola);
+    return res;
 }
 
-int exist(int clave) {
-    struct node *current = head;
-    while (current != NULL) {
-        if (current->tupla->clave == clave) {
-            return 1;
-        }
-        current = current->next;
-    }
-    return 0;
-}
 
-int selectTupla(int clave, struct tupla *tupla) {
-    struct node *current = head;
-    while (current != NULL) {
-        if (current->tupla->clave == clave) {
-            *tupla = *(current->tupla);
-            return 0;
-        }
-        current = current->next;
+int set_value(int key, char *value1, int value2, double value3){
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
+        return -1;
     }
-    return -1;
-}
-
-int saveTupla(struct tupla *tupla) {
-    struct node *current = head;
-    while (current != NULL) {
-        if (current->tupla->clave == tupla->clave) {
-            free(current->tupla->valor1);
-            current->tupla->valor1 = strdup(tupla->valor1);
-            current->tupla->valor2 = tupla->valor2;
-            current->tupla->valor3 = tupla->valor3;
-            return 0;
-        }
-        current = current->next;
+    struct tupla tupla;
+    tupla.clave = key;
+    tupla.valor1 = value1;
+    tupla.valor2 = value2;
+    tupla.valor3 = value3;
+    struct peticion pet;
+    pet.op = 1;
+    pet.tupla = tupla;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
+        return -1;
     }
-    return -1;
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
+        return -1;
+    }
+    mq_close(cola);
+    return res;
 }
 
 int get_value(int key, char **value1, int *value2, double *value3){
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
+        return -1;
+    }
     struct tupla tupla;
-    int res = selectTupla(key, &tupla);
+    tupla.clave = key;
+    tupla.valor1 = NULL;
+    tupla.valor2 = 0;
+    tupla.valor3 = 0;
+
+    struct peticion pet;
+    pet.op = 2;
+    pet.tupla = tupla;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
+        return -1;
+    }
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
+        return -1;
+    }
+    
     *value1 = strdup(tupla.valor1);
     *value2 = tupla.valor2;
     *value3 = tupla.valor3;
 
+    mq_close(cola);
     return res;
 }
 
 int modify_value(int key, char *value1, int value2, double value3){
-    struct tupla tupla;
-    int res = selectTupla(key, &tupla);
-    if (res == -1){
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
         return -1;
     }
-    free(tupla.valor1);
-    tupla.valor1 = strdup(value1);
+    struct tupla tupla;
+    tupla.clave = key;
+    tupla.valor1 = value1;
     tupla.valor2 = value2;
     tupla.valor3 = value3;
-    res = saveTupla(&tupla);
+    struct peticion pet;
+    pet.op = 3;
+    pet.tupla = tupla;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
+        return -1;
+    }
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
+        return -1;
+    }
+    mq_close(cola);
     return res;
 }
 
 
 int delete_key(int key){
-    int res = deleteKey(key);
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
+        return -1;
+    }
+    struct tupla tupla;
+    tupla.clave = key;
+    struct peticion pet;
+    pet.op = 4;
+    pet.tupla = tupla;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
+        return -1;
+    }
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
+        return -1;
+    }
+    mq_close(cola);
+    return res;
+}
+
+int exist(int key){
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
+        return -1;
+    }
+    struct tupla tupla;
+    tupla.clave = key;
+    struct peticion pet;
+    pet.op = 5;
+    pet.tupla = tupla;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
+        return -1;
+    }
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
+        return -1;
+    }
+    mq_close(cola);
     return res;
 }
 
 int copy_key(int key1, int key2){
+    mqd_t cola;
+    cola = mq_open("/ALMACEN", O_RDWR);
+    if (cola == -1){
+        perror("mq_open");
+        return -1;
+    }
     struct tupla tupla;
-    int res1 = selectTupla(key1, &tupla);
-    if (res1 == -1){
+    tupla.clave = key1;
+    tupla.valor2 = key2; // Reutilizamos el valor 2 como paso de la clave 2
+    struct peticion pet;
+    pet.op = 6;
+    pet.tupla = tupla;
+    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
+        perror("mq_send");
+        mq_close(cola);
         return -1;
     }
-    tupla.clave = key2;
-    int res2 = saveTupla(&tupla);
-    if (res2 == -1){
+    int res;
+    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+        perror("mq_recieve");
+        mq_close(cola);
         return -1;
     }
-    return 0;
-}
-
-
-int set_value(int key, char *value1, int value2, double value3){
-    struct tupla *tupla = (struct tupla*) malloc(sizeof(struct tupla));
-
-    tupla->clave = key;
-    tupla->valor1 = value1;
-    tupla->valor2 = value2;
-    tupla->valor3 = value3;
-
-    append(tupla);
-    return 0;
+    mq_close(cola);
+    return res;
 }

@@ -1,67 +1,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <dlfcn.h>
+#include <string.h>
 #include "claves.h"
 
 int main(int argc, char **argv) {
-    void *lib_handle;
-    char *error;
-
-    // Load the dynamic library
-    lib_handle = dlopen("libclaves.so", RTLD_LAZY);
-    if (!lib_handle) {
-        fprintf(stderr, "%s\n", dlerror());
-        exit(1);
+    if (argc < 3){
+        perror("Faltan argumentos. Uso: ./cliente [comando] [argumentos]");
+        return -1;
+    }
+    char* command = argv[1];
+    int res;
+    if (strcmp(command, "init") == 0){
+        init();
     }
 
-    // Get the function pointers from the library
-    int (*create_key)(int, char *);
-    int (*delete_key)(int);
-    int (*get_value)(int, char **);
-    int (*set_value)(int, char *);
-    int (*destroy)(void);
-
-
-    // Get the function pointers from the library
-    create_key = dlsym(lib_handle, "create_key");
-    delete_key = dlsym(lib_handle, "delete_key");
-    get_value = dlsym(lib_handle, "get_value");
-    set_value = dlsym(lib_handle, "set_value");
-    destroy = dlsym(lib_handle, "destroy");
-
-    if ((error = dlerror()) != NULL) {
-        fprintf(stderr, "%s\n", error);
-        exit(1);
+    else if (strcmp(command, "set_value") == 0){
+        char *ptr;
+        int clave = strtol(argv[2], &ptr, 10);
+        char *value1 = argv[3];
+        int value2 = strtol(argv[4], &ptr, 10);
+        double value3 = strtod(argv[5], &ptr);
+        res = set_value(clave, value1, value2, value3);
     }
 
-
-    // Use the functions from the library
-    int key1 = 1;
-    char *value1 = "myvalue1";
-    int key2 = 2;
-    char *value2 = "myvalue2";
-    char *get_value_result = NULL;
-
-    create_key(key1, value1);
-    create_key(key2, value2);
-
-    get_value(key1, &get_value_result);
-    printf("%s\n", get_value_result);
-    free(get_value_result);
-
-    set_value(key1, "newvalue1");
-    set_value(key2, "newvalue2");
-
-    get_value(key1, &get_value_result);
-    printf("%s\n", get_value_result);
-    free(get_value_result);
-
-    delete_key(key1);
-    delete_key(key2);
-
-    // Unload the dynamic library
-    dlclose(lib_handle);
-
-    return 0;
+    return res;
 }
