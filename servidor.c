@@ -12,6 +12,7 @@ mqd_t queue;
 
 void petition_handler(struct peticion pet){
     int res;
+    struct tupla tupla;
     printf("%d", pet.op);
     switch (pet.op) {
         case 0: //INIT
@@ -47,10 +48,8 @@ void petition_handler(struct peticion pet){
             break;
 
         case 6: //COPY_KEY
-            int key1 = pet.tupla.clave;
+            res = selectTupla(pet.tupla.clave, &tupla);
             int key2 = pet.tupla.valor2;
-            struct tupla tupla;
-            res = selectTupla(key1, &tupla);
             if (res == -1){
                 break;
             }

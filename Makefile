@@ -3,7 +3,7 @@ CC = gcc
 all: cliente servidor
 
 cliente: cliente.o libclaves.so
-	$(CC) cliente.o -Wl,-rpath=. -L. -lclaves -o cliente
+	$(CC) cliente.o -Wl,-rpath=. -L. -lclaves -o cliente -lrt
 
 cliente.o: cliente.c
 	$(CC) -Wall -o cliente.o -c cliente.c
@@ -15,7 +15,7 @@ libclaves.so: claves.o
 	$(CC) -shared claves.o -o libclaves.so
 
 servidor: servidor.o lista.o
-	$(CC) -Wall servidor.o lista.o -o servidor
+	$(CC) -Wall servidor.o lista.o -o servidor -lrt
 
 servidor.o: servidor.c
 	$(CC) -Wall -c servidor.c -o servidor.o
