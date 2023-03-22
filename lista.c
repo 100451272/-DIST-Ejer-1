@@ -8,6 +8,15 @@
 struct node *head = NULL;
 struct node *tail = NULL;
 
+void printTupla(void) {
+    struct node *current = head;
+    while (current->next != NULL){
+        printf("Id: %d\n 1: %s\n 2: %d\n 3: %f\n", current->tupla->clave,
+        current->tupla->valor1, current->tupla->valor2, current->tupla->valor3);
+        current = current->next;
+    }
+}
+
 void init(void) {
     head = NULL;
     tail = NULL;
@@ -28,6 +37,8 @@ void append(struct tupla *tupla) {
         head->prev = node;
         head = node;
     }
+    printTupla();
+    return;
 }
 
 int isEmpty(void) {

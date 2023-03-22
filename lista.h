@@ -20,6 +20,8 @@ struct peticion{
     struct tupla tupla;
 };
 
+void printTupla(void);
+
 void init(void);
 
 void append(struct tupla *tupla);
