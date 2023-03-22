@@ -11,8 +11,8 @@ struct node *tail = NULL;
 void printTupla(void) {
     struct node *current = head;
     while (current->next != NULL){
-        printf("Id: %d\n 1: %s\n 2: %d\n 3: %f\n", current->tupla->clave,
-        current->tupla->valor1, current->tupla->valor2, current->tupla->valor3);
+        printf("Id: %d\n 2: %d\n 3: %f\n", current->tupla->clave,
+         current->tupla->valor2, current->tupla->valor3);
         current = current->next;
     }
 }
