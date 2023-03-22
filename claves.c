@@ -6,106 +6,144 @@
 #include <mqueue.h>
 
 int init(void){
-    mqd_t cola;
-    cola = mq_open("/ALMACEN", O_WRONLY);
-    if (cola == -1){
-        perror("mq_open");
-        return -1;
-    }
+    mqd_t q_servidor;
+    mqd_t q_cliente;
+
     struct peticion pet;
-    pet.op = 0;
-    pet.tupla.clave = 0;
-    pet.tupla.valor1 = NULL;
-    pet.tupla.valor2 = 0;
-    pet.tupla.valor3 = 0;
-    printf("init\n");
-    if (mq_send(cola, (const char*)&pet, sizeof(pet), 0) < 0){
-        perror("mq_send");
-        mq_close(cola);
-        return -1;
-    }
-    mq_close(cola);
-    int res = 1;
-    /*mqd_t cola_cliente;
-    cola_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700);
-    if (cola_cliente == -1){
-        printf("Error cola del cliente\n");
-        return -1;
-    }
-    if (mq_receive(cola_cliente, (char*)&res, sizeof(int), 0) == -1){
-        perror("mq_recieve");
-        mq_close(cola);
-        return -1;
-    }
-    mq_close(cola_cliente);*/
-    return res;
+    int res;
+    struct mq_attr attr;
+
+    attr.mq_maxmsg = 1;     attr.mq_msgsize = sizeof(int);
+    q_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700, &attr);
+	if (q_cliente == -1) {
+		perror("mq_open");
+		return -1;
+	}
+    q_servidor = mq_open("/ALMACEN", O_WRONLY);
+	if (q_servidor == -1){
+		mq_close(q_cliente);
+		perror("mq_open");
+		return -1;
+	}
+    /* se rellena la petición */
+    pet.op = 0; 
+	    
+
+    if (mq_send(q_servidor, (const char *)&pet, sizeof(pet), 0) < 0){
+		perror("mq_send");
+		return -1;
+    }	
+    if (mq_receive(q_cliente, (char *) &res, sizeof(int), 0) < 0){
+		perror("mq_recv");
+		return -1;
+    }	
+
+    printf("Resultado = %d\n", res);
+
+    mq_close(q_servidor);
+    mq_close(q_cliente);
+    mq_unlink("/CLIENTE");
+	return res;
 }
 
 
 int set_value(int key, char *value1, int value2, double value3){
-    mqd_t cola;
-    cola = mq_open("/ALMACEN", O_RDWR);
-    if (cola == -1){
-        perror("mq_open");
-        return -1;
-    }
+    mqd_t q_servidor;
+    mqd_t q_cliente;
+
+    struct peticion pet;
+    int res;
+    struct mq_attr attr;
+
+    attr.mq_maxmsg = 1;     attr.mq_msgsize = sizeof(int);
+    q_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700, &attr);
+	if (q_cliente == -1) {
+		perror("mq_open");
+		return -1;
+	}
+    q_servidor = mq_open("/ALMACEN", O_WRONLY);
+	if (q_servidor == -1){
+		mq_close(q_cliente);
+		perror("mq_open");
+		return -1;
+	}
+    /* se rellena la petición */
     struct tupla tupla;
     tupla.clave = key;
     tupla.valor1 = value1;
     tupla.valor2 = value2;
     tupla.valor3 = value3;
-    struct peticion pet;
+
     pet.op = 1;
     pet.tupla = tupla;
-    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
-        perror("mq_send");
-        mq_close(cola);
-        return -1;
-    }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
-        perror("mq_recieve");
-        mq_close(cola);
-        return -1;
-    }
-    mq_close(cola);
-    return res;
+	    
+
+    if (mq_send(q_servidor, (const char *)&pet, sizeof(pet), 0) < 0){
+		perror("mq_send");
+		return -1;
+    }	
+    if (mq_receive(q_cliente, (char *) &res, sizeof(int), 0) < 0){
+		perror("mq_recv");
+		return -1;
+    }	
+
+    printf("Resultado = %d\n", res);
+
+    mq_close(q_servidor);
+    mq_close(q_cliente);
+    mq_unlink("/CLIENTE");
+	return res;    
 }
 
-int get_value(int key, char **value1, int *value2, double *value3){
-    mqd_t cola;
-    cola = mq_open("/ALMACEN", O_RDWR);
-    if (cola == -1){
-        perror("mq_open");
-        return -1;
-    }
+int get_value(int key, char *value1, int *value2, double *value3){
+    mqd_t q_servidor;
+    mqd_t q_cliente;
+
+    struct peticion pet;
+    struct tupla res;
+    struct mq_attr attr;
+
+    attr.mq_maxmsg = 10;     attr.mq_msgsize = sizeof(res);
+    q_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700, &attr);
+	if (q_cliente == -1) {
+		perror("mq_open");
+		return -1;
+	}
+    q_servidor = mq_open("/ALMACEN", O_WRONLY);
+	if (q_servidor == -1){
+		mq_close(q_cliente);
+		perror("mq_open");
+		return -1;
+	}
+    /* se rellena la petición */
+    pet.op = 2;
     struct tupla tupla;
     tupla.clave = key;
     tupla.valor1 = NULL;
     tupla.valor2 = 0;
     tupla.valor3 = 0;
-
-    struct peticion pet;
-    pet.op = 2;
     pet.tupla = tupla;
-    if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
-        perror("mq_send");
-        mq_close(cola);
-        return -1;
-    }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
-        perror("mq_recieve");
-        mq_close(cola);
-        return -1;
-    }
-    
-    *value1 = strdup(tupla.valor1);
+	    
+    printf("send");
+    if (mq_send(q_servidor, (const char *)&pet, sizeof(pet), 0) < 0){
+		perror("mq_send");
+		return -1;
+    }	
+    if (mq_receive(q_cliente, (char *) &res, sizeof(struct tupla), 0) < 0){
+		perror("mq_recv");
+		return -1;
+    }	
+    printf("%s", res.valor1);
+    //printf("Resultado = %d\n", res);
+    /*
+    value1 = strdup(tupla.valor1);
     *value2 = tupla.valor2;
     *value3 = tupla.valor3;
-
-    mq_close(cola);
-    return res;
+*/
+    mq_close(q_servidor);
+    mq_close(q_cliente);
+    mq_unlink("/CLIENTE");
+    return 0;
 }
 
 int modify_value(int key, char *value1, int value2, double value3){

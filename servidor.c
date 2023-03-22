@@ -8,12 +8,27 @@
 
 // declare a global mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-mqd_t queue;
 
-void petition_handler(struct peticion pet){
+void sendTupla(struct tupla tupla){
+    mqd_t q_cliente;
+    q_cliente = mq_open("/CLIENTE", O_WRONLY);
+    if (q_cliente < 0) {
+        perror("mq_open");
+        mq_unlink("/ALMACEN");
+        return;
+    }
+    if (mq_send(q_cliente, (const char *)&tupla, sizeof(int), 0) < 0) {
+        perror("mq_send");
+        mq_unlink("/ALMACEN");
+        return;
+    }
+
+            mq_close(q_cliente);
+}
+
+int petition_handler(struct peticion pet){
     int res;
     struct tupla tupla;
-    printf("%d", pet.op);
     switch (pet.op) {
         case 0: //INIT
             if (!isEmpty()){
@@ -21,6 +36,7 @@ void petition_handler(struct peticion pet){
                 init();
                 res = 0;
             }
+            res= 0;
             break;
 
         case 1: //SET_VALUE
@@ -37,6 +53,7 @@ void petition_handler(struct peticion pet){
                 break;
             }
             res = saveTupla(&pet.tupla);
+            sendTupla(pet.tupla);
             break;
 
         case 4: //DELETE_KEY
@@ -59,40 +76,51 @@ void petition_handler(struct peticion pet){
         default:
             res = -1; // Error: unknown operation
     }
-
-    mqd_t cola_cliente;
-    cola_cliente = mq_open("/CLIENTE", O_WRONLY);
-    if(mq_send(cola_cliente, (char *)&res, sizeof(int), 0) == -1) {
-        printf("Error en el send");
-    }
+    return res;
 }
 
 
 
 int main(void){
-    struct peticion pet;     
-	//pthread_attr_t t_attr;		 atributos de los threads 
-   	//pthread_t thid;
+    mqd_t q_servidor;     	    /* cola de mensajes del servidor */
+    mqd_t q_cliente;                /* cola de mensajes del cliente */
+    struct peticion pet;      int res;
+    struct mq_attr attr;
 
-
-    queue = mq_open("/ALMACEN", O_CREAT|O_RDONLY, 0700);
-	if (queue == -1) {
+    attr.mq_maxmsg = 10;                
+	attr.mq_msgsize = sizeof(struct peticion);
+    q_servidor = mq_open("/ALMACEN", O_CREAT|O_RDONLY, 0700, &attr);
+	if (q_servidor == -1) {
 		perror("mq_open");
 		return -1;
 	}
 
-    
-    printf("Cola creada\n");
+        while(1) {
+        if (mq_receive(q_servidor, (char *) &pet, sizeof(pet), 0) < 0){
+			perror("mq_recev");
+			return -1;
+		}
+        printf("Peticion recibida: %d\n", pet.op);
+        res = petition_handler(pet);
 
-    while (1){
-        if (mq_receive(queue, (char *)&pet, sizeof(pet), 0) == -1){
-        printf("Error en el recieve");
-        return -1;
-        }
-        printf("Recibido");
-        petition_handler(pet);
-    }    
-    mq_close(queue);
+                /* se responde al cliente abriendo reviamente su cola */
+        q_cliente = mq_open("/CLIENTE", O_WRONLY);
+		if (q_cliente < 0) {
+			perror("mq_open");
+			mq_close(q_servidor);
+			mq_unlink("/ALMACEN");
+			return -1;
+		}
+        if (mq_send(q_cliente, (const char *)&res, sizeof(int), 0) < 0) {
+			perror("mq_send");
+			mq_close(q_servidor);
+			mq_unlink("/ALMACEN");
+			return -1;
+		}
+
+                mq_close(q_cliente);
+        }   
+    mq_close(q_servidor);
     // Remove the message queue from the system
     mq_unlink("/ALMACEN");
     return 0;
