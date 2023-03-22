@@ -10,7 +10,7 @@ struct node{
 
 struct tupla {
     int clave;
-    char* valor1;
+    char valor1[255];
     int valor2;
     double valor3;
 };
@@ -24,7 +24,7 @@ void printTupla(void);
 
 void init(void);
 
-void append(struct tupla *tupla);
+void append(struct tupla tupla);
 
 int isEmpty(void);
 

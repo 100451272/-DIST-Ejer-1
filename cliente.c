@@ -29,12 +29,12 @@ int main(int argc, char **argv) {
     else if (strcmp(command, "get_value") == 0){
         char *ptr;
         int clave = strtol(argv[2], &ptr, 10);
-        char *value1;
+        char *value1 = NULL;
         int *value2;
         value2 = 0;
         double *value3;
         value3 = 0;
-        res = get_value(clave, &value1, value2, value3);
+        res = get_value(clave, value1, value2, value3);
     }
 
     return res;

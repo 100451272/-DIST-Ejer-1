@@ -10,10 +10,10 @@ int init(void){
     mqd_t q_cliente;
 
     struct peticion pet;
-    int res;
+    struct peticion res;
     struct mq_attr attr;
 
-    attr.mq_maxmsg = 1;     attr.mq_msgsize = sizeof(int);
+    attr.mq_maxmsg = 10;     attr.mq_msgsize = sizeof(res);
     q_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700, &attr);
 	if (q_cliente == -1) {
 		perror("mq_open");
@@ -33,17 +33,17 @@ int init(void){
 		perror("mq_send");
 		return -1;
     }	
-    if (mq_receive(q_cliente, (char *) &res, sizeof(int), 0) < 0){
+    if (mq_receive(q_cliente, (char *)&res, sizeof(res), 0) < 0){
 		perror("mq_recv");
 		return -1;
     }	
 
-    printf("Resultado = %d\n", res);
+    printf("Resultado = %d\n", res.op);
 
     mq_close(q_servidor);
     mq_close(q_cliente);
     mq_unlink("/CLIENTE");
-	return res;
+	return res.op;
 }
 
 
@@ -52,10 +52,10 @@ int set_value(int key, char *value1, int value2, double value3){
     mqd_t q_cliente;
 
     struct peticion pet;
-    int res;
+    struct peticion res;
     struct mq_attr attr;
 
-    attr.mq_maxmsg = 1;     attr.mq_msgsize = sizeof(int);
+    attr.mq_maxmsg = 1;     attr.mq_msgsize = sizeof(res);
     q_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700, &attr);
 	if (q_cliente == -1) {
 		perror("mq_open");
@@ -70,29 +70,28 @@ int set_value(int key, char *value1, int value2, double value3){
     /* se rellena la petición */
     struct tupla tupla;
     tupla.clave = key;
-    tupla.valor1 = value1;
+    strcpy(tupla.valor1, value1);
     tupla.valor2 = value2;
     tupla.valor3 = value3;
 
     pet.op = 1;
     pet.tupla = tupla;
-	    
 
     if (mq_send(q_servidor, (const char *)&pet, sizeof(pet), 0) < 0){
 		perror("mq_send");
 		return -1;
     }	
-    if (mq_receive(q_cliente, (char *) &res, sizeof(int), 0) < 0){
+    if (mq_receive(q_cliente, (char *) &res, sizeof(res), 0) < 0){
 		perror("mq_recv");
 		return -1;
     }	
 
-    printf("Resultado = %d\n", res);
+    printf("Resultado = %d\n", res.op);
 
     mq_close(q_servidor);
     mq_close(q_cliente);
     mq_unlink("/CLIENTE");
-	return res;    
+	return res.op;    
 }
 
 int get_value(int key, char *value1, int *value2, double *value3){
@@ -100,7 +99,7 @@ int get_value(int key, char *value1, int *value2, double *value3){
     mqd_t q_cliente;
 
     struct peticion pet;
-    struct tupla res;
+    struct peticion res;
     struct mq_attr attr;
 
     attr.mq_maxmsg = 10;     attr.mq_msgsize = sizeof(res);
@@ -117,29 +116,21 @@ int get_value(int key, char *value1, int *value2, double *value3){
 	}
     /* se rellena la petición */
     pet.op = 2;
-    struct tupla tupla;
-    tupla.clave = key;
-    tupla.valor1 = NULL;
-    tupla.valor2 = 0;
-    tupla.valor3 = 0;
-    pet.tupla = tupla;
 	    
-    printf("send");
     if (mq_send(q_servidor, (const char *)&pet, sizeof(pet), 0) < 0){
 		perror("mq_send");
 		return -1;
     }	
-    if (mq_receive(q_cliente, (char *) &res, sizeof(struct tupla), 0) < 0){
+    if (mq_receive(q_cliente, (char *) &res, sizeof(res), 0) < 0){
 		perror("mq_recv");
 		return -1;
     }	
-    printf("%s", res.valor1);
-    //printf("Resultado = %d\n", res);
-    /*
-    value1 = strdup(tupla.valor1);
-    *value2 = tupla.valor2;
-    *value3 = tupla.valor3;
-*/
+    printf("Resultado = %d\n", res.op);
+    
+    value1 = res.tupla.valor1;
+    *value2 = res.tupla.valor2;
+    *value3 = res.tupla.valor3;
+
     mq_close(q_servidor);
     mq_close(q_cliente);
     mq_unlink("/CLIENTE");
@@ -155,7 +146,7 @@ int modify_value(int key, char *value1, int value2, double value3){
     }
     struct tupla tupla;
     tupla.clave = key;
-    tupla.valor1 = value1;
+    strcpy(tupla.valor1, value1);
     tupla.valor2 = value2;
     tupla.valor3 = value3;
     struct peticion pet;

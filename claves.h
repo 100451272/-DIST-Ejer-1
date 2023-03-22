@@ -3,7 +3,7 @@
 #define P_CLAVES_H
 struct tupla {
     int clave;
-    char* valor1;
+    char valor1[255];
     int valor2;
     double valor3;
 };

@@ -11,8 +11,8 @@ struct node *tail = NULL;
 void printTupla(void) {
     struct node *current = head;
     while (current->next != NULL){
-        printf("Id: %d\n 2: %d\n 3: %f\n", current->tupla->clave,
-         current->tupla->valor2, current->tupla->valor3);
+        printf("Id: %d\n 1: %s\n 2: %d\n 3: %f\n", current->tupla->clave,
+        current->tupla->valor1, current->tupla->valor2, current->tupla->valor3);
         current = current->next;
     }
 }
@@ -22,10 +22,10 @@ void init(void) {
     tail = NULL;
 }
 
-void append(struct tupla *tupla) {
+void append(struct tupla tupla) {
     struct node *node = (struct node*) malloc(sizeof(struct node));
 
-    node->tupla = tupla;
+    node->tupla = &tupla;
     node->prev = NULL;
     node->next = NULL;
 
@@ -105,11 +105,13 @@ int selectTupla(int clave, struct tupla *tupla) {
     struct node *current = head;
     while (current != NULL) {
         if (current->tupla->clave == clave) {
+            printf("llego");
             *tupla = *(current->tupla);
             return 0;
         }
         current = current->next;
     }
+    printf("no llego");
     return -1;
 }
 
@@ -117,8 +119,8 @@ int saveTupla(struct tupla *tupla) {
     struct node *current = head;
     while (current != NULL) {
         if (current->tupla->clave == tupla->clave) {
-            free(current->tupla->valor1);
-            current->tupla->valor1 = strdup(tupla->valor1);
+            //free(current->tupla->valor1);
+            //current->tupla->valor1 = tupla->valor1;
             current->tupla->valor2 = tupla->valor2;
             current->tupla->valor3 = tupla->valor3;
             return 0;
