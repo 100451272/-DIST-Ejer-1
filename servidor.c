@@ -86,6 +86,7 @@ int main(void){
 		}
         printf("Peticion recibida: %d\n", pet.op);
         struct peticion res = petition_handler(pet);
+        fflush(NULL);
         //printf("%d", res.op);
                 /* se responde al cliente abriendo reviamente su cola */
         q_cliente = mq_open("/CLIENTE", O_WRONLY);
