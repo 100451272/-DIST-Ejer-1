@@ -1,3 +1,4 @@
+
 // Archivo de cabecera para claves.c
 #ifndef P_CLAVES_H
 #define P_CLAVES_H

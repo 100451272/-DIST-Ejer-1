@@ -219,6 +219,10 @@ int exist(int key){
         return -1;
     }
     mq_close(cola);
+    if (res != 0 && res != 1) {
+        perror("Respuesta inválida recibida");
+        return -1;
+    }
     return res;
 }
 

@@ -1,5 +1,6 @@
-#ifndef _LISTA_H
-#define _LISTA_H        1
+
+#ifndef P_LIST_H
+#define P_LIST_H        1
 
 #define MAX_KEY_LENGTH	256
 
@@ -31,5 +32,5 @@ int printList(List l);
 int delete(List *l, int key);
 int destroy(List *l);
 
-#endif
+#endif //P_LIST_H
 

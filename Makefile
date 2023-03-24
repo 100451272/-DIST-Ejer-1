@@ -14,14 +14,14 @@ claves.o: claves.c
 libclaves.so: claves.o
 	$(CC) -shared claves.o -o libclaves.so
 
-servidor: servidor.o lista.o
-	$(CC) -Wall servidor.o lista.o -o servidor -lrt
+servidor: servidor.o list.o
+	$(CC) -Wall servidor.o list.o -o servidor -lrt
 
 servidor.o: servidor.c
 	$(CC) -Wall -c servidor.c -o servidor.o
 
-lista.o: lista.c
-	$(CC) -Wall -c lista.c -o lista.o
+list.o: list.c
+	$(CC) -Wall -c list.c -o list.o
 
 clean:
 	rm -f *~ *.o libclaves.so cliente servidor

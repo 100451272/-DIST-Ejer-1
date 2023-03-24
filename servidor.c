@@ -1,65 +1,96 @@
+
 // Código del servidor
 #include <stdio.h>
 #include <stdlib.h>
 #include <mqueue.h>
-#include "lista.h"
+#include <string.h>
+#include "list.h"
 
 #include <pthread.h>
 
 // declare a global mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+List list;
 
 struct peticion petition_handler(struct peticion pet){
-    struct tupla tupla;
+    //struct tupla tupla;
     struct peticion res;
     switch (pet.op) {
         case 0: //INIT
-            if (!isEmpty()){
-                deleteAll();
-                init();
-                res.op = 0;
-            }
+            init(&list);
             res.op= 0;
             break;
 
         case 1: //SET_VALUE
-            append(pet.tupla);
+            set(&list, pet.tupla.clave, &pet.tupla);
             res.op = 0;
+            printList(list);
             break;
 
         case 2: //GET_VALUE
-            res.op = selectTupla(pet.tupla.clave, &res.tupla);
+            res.op = get(&list, pet.tupla.clave, &pet.tupla);
+            if (res.op == 0) { // si la operación fue exitosa
+                // copiamos los valores de la tupla a los campos de la respuesta
+                strcpy(res.tupla.valor1, pet.tupla.valor1);
+                res.tupla.valor2 = pet.tupla.valor2;
+                res.tupla.valor3 = pet.tupla.valor3;
+            }
             break;
 
+
+
         case 3: //MODIFY_VALUE
-            /*
-            if (!exist(pet.tupla.clave)){
-                break;
+            pthread_mutex_lock(&mutex); // Bloquea el mutex
+            int modif_res = -1;
+            struct tupla old_tupla;
+            if (get(&list, pet.tupla.clave, &old_tupla) == 0) {
+                // Si la clave existe, se actualiza la tupla
+                modif_res = set(&list, pet.tupla.clave, &pet.tupla);
+                if (modif_res == 0) {
+                    printf("Tupla actualizada:\n");
+                    printf("  clave: %d\n", pet.tupla.clave);
+                    printf("  valor1: %s\n", pet.tupla.valor1);
+                    printf("  valor2: %d\n", pet.tupla.valor2);
+                    printf("  valor3: %lf\n", pet.tupla.valor3);
+                }
             }
-            res.op = saveTupla(&pet.tupla);*/
-            printTupla();
+            pthread_mutex_unlock(&mutex); // Desbloquea el mutex
+            modif_res = (modif_res == 0) ? 0 : -1;
             break;
 
         case 4: //DELETE_KEY
-            res.op = deleteKey(pet.tupla.clave);
-            break;
-
-        case 5: //EXIST
-            res.op = exist(pet.tupla.clave);
-            break;
-
-        case 6: //COPY_KEY
-            res.op = selectTupla(pet.tupla.clave, &tupla);
-            int key2 = pet.tupla.valor2;
-            if (res.op == -1){
-                break;
+            if (delete(&list, pet.tupla.clave) == 0) {
+                res.op = 0;
+            } else {
+                res.op = -1;
             }
-            tupla.clave = key2;
-            res.op = saveTupla(&tupla);
+            printList(list);
             break;
-        default:
-            res.op = -1; // Error: unknown operation
-    }
+
+
+
+        case 5: // EXISTS
+            if (get(&list, pet.tupla.clave, &pet.tupla) == 0) {
+                res.op = 1; // found
+            } else {
+                res.op = -1; // not found
+            }
+            break;
+
+
+
+            /* case 6: //COPY_KEY
+                 res.op = selectTupla(pet.tupla.clave, &tupla);
+                 int key2 = pet.tupla.valor2;
+                 if (res.op == -1){
+                     break;
+                 }
+                 tupla.clave = key2;
+                 res.op = saveTupla(&tupla);
+                 break;
+             default:
+                 res.op = -1; // Error: unknown operation
+         */}
     return res;
 }
 
