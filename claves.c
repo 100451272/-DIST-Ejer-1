@@ -116,6 +116,7 @@ int get_value(int key, char *value1, int *value2, double *value3){
 	}
     /* se rellena la petición */
     pet.op = 2;
+    pet.tupla.clave = key;
 	    
     if (mq_send(q_servidor, (const char *)&pet, sizeof(pet), 0) < 0){
 		perror("mq_send");
@@ -127,7 +128,7 @@ int get_value(int key, char *value1, int *value2, double *value3){
     }	
     printf("Resultado = %d\n", res.op);
     
-    value1 = res.tupla.valor1;
+    strcpy(value1, res.tupla.valor1);
     *value2 = res.tupla.valor2;
     *value3 = res.tupla.valor3;
 

@@ -24,6 +24,7 @@ int set(List *l, int key, struct tupla *tupla){
 		return -1;
 
 	if (*l == NULL) {  // emtpy list
+	printf("%d", key);
 		ptr->key = key;
 		ptr->tupla = tupla_node;
 		ptr->next = NULL;
@@ -54,7 +55,7 @@ int get(List *l, int key, struct tupla *tupla){
 		else
 			aux = aux->next;
 	}
-
+	printf("Not found");
 	return -1;  // not found
 }	
 
