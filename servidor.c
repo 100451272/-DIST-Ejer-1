@@ -40,11 +40,11 @@ struct peticion petition_handler(struct peticion pet){
 
 
         case 3: //MODIFY_VALUE
-            pthread_mutex_lock(&mutex); // Bloquea el mutex
             int modif_res = -1;
             struct tupla old_tupla;
             if (get(&list, pet.tupla.clave, &old_tupla) == 0) {
                 // Si la clave existe, se actualiza la tupla
+                delete(&list, pet.tupla.clave);
                 modif_res = set(&list, pet.tupla.clave, &pet.tupla);
                 if (modif_res == 0) {
                     printf("Tupla actualizada:\n");
@@ -54,8 +54,7 @@ struct peticion petition_handler(struct peticion pet){
                     printf("  valor3: %lf\n", pet.tupla.valor3);
                 }
             }
-            pthread_mutex_unlock(&mutex); // Desbloquea el mutex
-            modif_res = (modif_res == 0) ? 0 : -1;
+            res.op = 0;
             break;
 
         case 4: //DELETE_KEY

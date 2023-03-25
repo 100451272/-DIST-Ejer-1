@@ -140,11 +140,22 @@ int get_value(int key, char *value1, int *value2, double *value3){
 
 int modify_value(int key, char *value1, int value2, double value3){
     mqd_t cola;
+    mqd_t q_cliente;
+    struct peticion res;
+    struct mq_attr attr;
+
+    attr.mq_maxmsg = 1;     attr.mq_msgsize = sizeof(res);
+    q_cliente = mq_open("/CLIENTE", O_CREAT|O_RDONLY, 0700, &attr);
+	if (q_cliente == -1) {
+		perror("mq_open");
+		return -1;
+	}
     cola = mq_open("/ALMACEN", O_RDWR);
     if (cola == -1){
         perror("mq_open");
         return -1;
     }
+    
     struct tupla tupla;
     tupla.clave = key;
     strcpy(tupla.valor1, value1);
@@ -158,14 +169,15 @@ int modify_value(int key, char *value1, int value2, double value3){
         mq_close(cola);
         return -1;
     }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+    printf("Esperando respuesta");
+    if (mq_receive(cola, (char*)&res, sizeof(res), 0) == -1){
         perror("mq_recieve");
         mq_close(cola);
         return -1;
     }
     mq_close(cola);
-    return res;
+    mq_unlink("/CLIENTE");
+    return res.op;
 }
 
 
@@ -186,14 +198,14 @@ int delete_key(int key){
         mq_close(cola);
         return -1;
     }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+    struct peticion res;
+    if (mq_receive(cola, (char*)&res, sizeof(res), 0) == -1){
         perror("mq_recieve");
         mq_close(cola);
         return -1;
     }
     mq_close(cola);
-    return res;
+    return res.op;
 }
 
 int exist(int key){
@@ -213,18 +225,18 @@ int exist(int key){
         mq_close(cola);
         return -1;
     }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+    struct peticion res;
+    if (mq_receive(cola, (char*)&res, sizeof(res), 0) == -1){
         perror("mq_recieve");
         mq_close(cola);
         return -1;
     }
     mq_close(cola);
-    if (res != 0 && res != 1) {
+    if (res.op != 0 && res.op != 1) {
         perror("Respuesta inválida recibida");
         return -1;
     }
-    return res;
+    return res.op;
 }
 
 int copy_key(int key1, int key2){
@@ -245,12 +257,12 @@ int copy_key(int key1, int key2){
         mq_close(cola);
         return -1;
     }
-    int res;
-    if (mq_receive(cola, (char*)&res, sizeof(int), 0) == -1){
+    struct peticion res;
+    if (mq_receive(cola, (char*)&res, sizeof(res), 0) == -1){
         perror("mq_recieve");
         mq_close(cola);
         return -1;
     }
     mq_close(cola);
-    return res;
+    return res.op;
 }
