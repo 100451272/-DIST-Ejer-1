@@ -30,9 +30,7 @@ int main(int argc, char **argv) {
     else if (strcmp(command, "exists") == 0){
         char *ptr;
         int clave = strtol(argv[2], &ptr, 10);
-        printf("Exists1\n");
         res = exist(clave);
-        printf("Exists10\n");
         if (res == 1) {
             printf("La clave existe\n");
         } else if (res == 0) {
@@ -68,57 +66,6 @@ int main(int argc, char **argv) {
         }
     }
 
-
-    else if (strcmp(command, "copy_key") == 0){
-        char *ptr;
-        int key1 = strtol(argv[2], &ptr, 10);
-        int key2 = strtol(argv[3], &ptr, 10);
-
-        // Verificar si key1 existe
-        if (exist(key1) == 0) {
-            printf("La clave %d no existe\n", key1);
-            res = -1;
-        } else {
-            // Si key2 no existe, crearla y copiar los valores de key1
-            if (exist(key2) == 0) {
-                if (copy_key(key1, key2) == 0) {
-                    printf("Clave %d creada y copiada correctamente en clave %d\n", key1, key2);
-                    res = 0;
-                } else {
-                    printf("Error al crear y copiar clave %d en clave %d\n", key1, key2);
-                    res = -1;
-                }
-            } else {
-                // Si key2 ya existe, modificar sus valores con los de key1
-                if (modify(key1, key2) == 0) {
-                    printf("Valores de clave %d copiados correctamente en clave %d\n", key1, key2);
-                    res = 0;
-                } else {
-                    printf("Error al modificar valores de clave %d en clave %d\n", key1, key2);
-                    res = -1;
-                }
-            }
-        }
-    }
-
-
-        /*else if (strcmp(command, "copy_key") == 0){
-            char *ptr;
-            int key1 = strtol(argv[2], &ptr, 10);
-            int key2 = strtol(argv[3], &ptr, 10);
-            res = copy_key(key1, key2);
-            if(res == -1){
-                printf("Error al copiar la clave %d en la clave %d\n", key1, key2);
-            }
-            else{
-                printf("La clave %d ha sido copiada correctamente en la clave %d\n", key1, key2);
-            }
-        }*/
-
-
-
-
-
     else if (strcmp(command, "get_value") == 0){
         char *ptr;
         int clave = strtol(argv[2], &ptr, 10);
@@ -143,11 +90,5 @@ int main(int argc, char **argv) {
             printf("No se ha encontrado un elemento con clave %d.\n", clave);
         }
     }
-
-
-
-
-
-
     return res;
 }
