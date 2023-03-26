@@ -116,41 +116,13 @@ struct peticion petition_handler(struct peticion pet){
             tupla2.valor3 = tupla1.valor3;
 
             // Insertar o modificar la tupla en la lista
+            delete(&list, tupla2.clave);
             set(&list, key2, &tupla2);
 
             res.op = 0;
             printList(list);
             break;
         }
-
-
-
-            /*case 6: //COPY_KEY
-                res.op = exists(&list, pet.tupla.clave) == 1 ? 0 : -1;
-                if (res.op == 0) { // si la clave1 existe
-                    // obtenemos la tupla de la clave1
-                    struct tupla tupla1;
-                    get(&list, pet.tupla.clave, &tupla1);
-                    // intentamos obtener la tupla de la clave2
-                    struct tupla tupla2;
-                    int exist = exists(&list, pet.tupla.clave);
-                    if (exist == 0) { // si la clave2 no existe, la creamos
-                        tupla2.clave = pet.tupla.clave;
-                        set(&list, pet.tupla.clave, &tupla2);
-                    }
-                    // obtenemos la tupla actual de la clave2
-                    get(&list, pet.tupla.clave, &tupla2);
-                    // copiamos los valores de la tupla1 en la tupla2
-                    strcpy(tupla2.valor1, tupla1.valor1);
-                    tupla2.valor2 = tupla1.valor2;
-                    tupla2.valor3 = tupla1.valor3;
-                    // actualizamos la tupla2 en la lista
-                    set(&list, pet.tupla.clave, &tupla2);
-                }
-                printList(list);
-                break;*/
-
-
 
 
 

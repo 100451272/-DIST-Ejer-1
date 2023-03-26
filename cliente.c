@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
                 }
             } else {
                 // Si key2 ya existe, modificar sus valores con los de key1
-                if (modify_value(key1, key2) == 0) {
+                if (modify(key1, key2) == 0) {
                     printf("Valores de clave %d copiados correctamente en clave %d\n", key1, key2);
                     res = 0;
                 } else {
