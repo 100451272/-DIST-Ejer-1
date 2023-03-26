@@ -1,0 +1,12 @@
+Para utilizar el programa se necesita:
+- Abrir dos terminales
+- Hacer make en cualquiera de ellas
+- En una de ellas ejecutar "servidor"
+- En la otra ejecutar "cliente" con los siguientes parámetros:
+    - init
+    - set_value key value1 value2 value3
+    - get_value key
+    - remove_value key
+    - exists key
+    - modify_value key value1 value2 value3
+    - copy_key key1 key2
