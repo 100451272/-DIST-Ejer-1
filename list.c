@@ -1,14 +1,31 @@
-#include <stdio.h> 
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
-
+#include "pthread.h""
 
 int init(List *l) {
 
 	*l = NULL;
 	return (0);
-}	
+}
+
+
+int exists(List *l, int key) {
+    if (l == NULL) {
+        return -1;
+    }
+    List current = *l;
+    while (current != NULL) {
+        if (current->tupla->clave == key) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
 
 int set(List *l, int key, struct tupla *tupla){
 	struct Node *ptr;

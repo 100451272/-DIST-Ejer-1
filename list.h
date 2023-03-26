@@ -26,6 +26,7 @@ typedef struct Node * List;
 
 
 int init(List *l);
+int exists(List *l, int key);
 int set(List *l, int key, struct tupla *tupla);
 int get(List *l, int key, struct tupla *tupla);
 int printList(List l);

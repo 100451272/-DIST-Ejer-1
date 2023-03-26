@@ -1,5 +1,4 @@
 
-// Código del servidor
 #include <stdio.h>
 #include <stdlib.h>
 #include <mqueue.h>
@@ -40,22 +39,40 @@ struct peticion petition_handler(struct peticion pet){
 
 
         case 3: //MODIFY_VALUE
-            int modif_res = -1;
-            struct tupla old_tupla;
-            if (get(&list, pet.tupla.clave, &old_tupla) == 0) {
-                // Si la clave existe, se actualiza la tupla
-                delete(&list, pet.tupla.clave);
-                modif_res = set(&list, pet.tupla.clave, &pet.tupla);
-                if (modif_res == 0) {
-                    printf("Tupla actualizada:\n");
-                    printf("  clave: %d\n", pet.tupla.clave);
-                    printf("  valor1: %s\n", pet.tupla.valor1);
-                    printf("  valor2: %d\n", pet.tupla.valor2);
-                    printf("  valor3: %lf\n", pet.tupla.valor3);
-                }
-            }
-            res.op = 0;
+            delete(&list, pet.tupla.clave);
+            set(&list, pet.tupla.clave, &pet.tupla);
+            printList(list);
             break;
+
+
+
+            /* case 3: //MODIFY_VALUE
+                 pthread_mutex_lock(&mutex); // bloqueamos el mutex para que no haya conflictos de acceso a la lista
+                 // verificamos si la clave existe
+                 if (exists(&list, pet.tupla.clave)) {
+                     // obtenemos la tupla original
+                     struct tupla original;
+                     get(&list, pet.tupla.clave, &original);
+
+                     // copiamos los nuevos valores a la tupla original
+                     strcpy(original.valor1, pet.tupla.valor1);
+                     original.valor2 = pet.tupla.valor2;
+                     original.valor3 = pet.tupla.valor3;
+
+                     // actualizamos la tupla en la lista
+                     set(&list, pet.tupla.clave, &original);
+
+                     res.op = 0; // operación exitosa
+                 } else {
+                     res.op = -1; // error: la clave no existe
+                 }
+                 printList(list);
+                 //delete(&list, pet.tupla.clave);
+                 pthread_mutex_unlock(&mutex);
+                 printList(list);
+                 break;*/
+
+
 
         case 4: //DELETE_KEY
             if (delete(&list, pet.tupla.clave) == 0) {
@@ -68,28 +85,79 @@ struct peticion petition_handler(struct peticion pet){
 
 
 
-        case 5: // EXISTS
-            if (get(&list, pet.tupla.clave, &pet.tupla) == 0) {
-                res.op = 1; // found
-            } else {
-                res.op = -1; // not found
+        case 5: //EXIST
+            res.op = exists(&list, pet.tupla.clave);
+            if (res.op == 0) {
+                printf("No existe\n");
             }
+            else if (res.op == 1){
+                printf("Existe\n");
+            }
+            printList(list);
             break;
 
 
+        case 6: // COPY_KEY
+        {
+            struct tupla tupla1, tupla2;
+            int key1 = pet.tupla.clave;
+            int key2 = pet.tupla.valor2;
 
-            /* case 6: //COPY_KEY
-                 res.op = selectTupla(pet.tupla.clave, &tupla);
-                 int key2 = pet.tupla.valor2;
-                 if (res.op == -1){
-                     break;
-                 }
-                 tupla.clave = key2;
-                 res.op = saveTupla(&tupla);
-                 break;
-             default:
-                 res.op = -1; // Error: unknown operation
-         */}
+            // Buscar la tupla de key1
+            if (get(&list, key1, &tupla1) == -1) {
+                res.op = -1; // La clave key1 no existe
+                break;
+            }
+
+            // Crear la tupla de key2 con los valores de key1
+            tupla2.clave = key2;
+            strcpy(tupla2.valor1, tupla1.valor1);
+            tupla2.valor2 = tupla1.valor2;
+            tupla2.valor3 = tupla1.valor3;
+
+            // Insertar o modificar la tupla en la lista
+            set(&list, key2, &tupla2);
+
+            res.op = 0;
+            printList(list);
+            break;
+        }
+
+
+
+            /*case 6: //COPY_KEY
+                res.op = exists(&list, pet.tupla.clave) == 1 ? 0 : -1;
+                if (res.op == 0) { // si la clave1 existe
+                    // obtenemos la tupla de la clave1
+                    struct tupla tupla1;
+                    get(&list, pet.tupla.clave, &tupla1);
+                    // intentamos obtener la tupla de la clave2
+                    struct tupla tupla2;
+                    int exist = exists(&list, pet.tupla.clave);
+                    if (exist == 0) { // si la clave2 no existe, la creamos
+                        tupla2.clave = pet.tupla.clave;
+                        set(&list, pet.tupla.clave, &tupla2);
+                    }
+                    // obtenemos la tupla actual de la clave2
+                    get(&list, pet.tupla.clave, &tupla2);
+                    // copiamos los valores de la tupla1 en la tupla2
+                    strcpy(tupla2.valor1, tupla1.valor1);
+                    tupla2.valor2 = tupla1.valor2;
+                    tupla2.valor3 = tupla1.valor3;
+                    // actualizamos la tupla2 en la lista
+                    set(&list, pet.tupla.clave, &tupla2);
+                }
+                printList(list);
+                break;*/
+
+
+
+
+
+
+
+
+    }
     return res;
 }
 

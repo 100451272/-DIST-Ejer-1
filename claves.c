@@ -220,22 +220,29 @@ int exist(int key){
     struct peticion pet;
     pet.op = 5;
     pet.tupla = tupla;
+    printf("Exists2\n");
     if (mq_send(cola, (const char*)&pet, sizeof(struct peticion), 0) == -1){
         perror("mq_send");
         mq_close(cola);
+        printf("Exists6\n");
         return -1;
     }
     struct peticion res;
+    printf("Exists11\n");
     if (mq_receive(cola, (char*)&res, sizeof(res), 0) == -1){
         perror("mq_recieve");
         mq_close(cola);
+        printf("Exists7\n");
         return -1;
     }
     mq_close(cola);
+    printf("Exists12\n");
     if (res.op != 0 && res.op != 1) {
         perror("Respuesta inválida recibida");
+        printf("Exists8\n");
         return -1;
     }
+    printf("Exists9\n");
     return res.op;
 }
 
