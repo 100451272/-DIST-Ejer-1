@@ -42,6 +42,7 @@ struct peticion petition_handler(struct peticion pet){
             delete(&list, pet.tupla.clave);
             set(&list, pet.tupla.clave, &pet.tupla);
             printList(list);
+            res.op = 0;
             break;
 
 
@@ -81,6 +82,7 @@ struct peticion petition_handler(struct peticion pet){
                 res.op = -1;
             }
             printList(list);
+            fflush(NULL);
             break;
 
 
@@ -166,8 +168,8 @@ int main(void){
 			mq_unlink("/ALMACEN");
 			return -1;
 		}
-        
-        //printf("%s", res.tupla.valor1);
+        printf("%d", res.op);
+        fflush(NULL);
         if (mq_send(q_cliente, (const char *)&res, sizeof(res), 0) < 0) {
 			perror("mq_send");
 			mq_close(q_servidor);

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
-#include "pthread.h""
+#include "pthread.h"
 
 int init(List *l) {
 
